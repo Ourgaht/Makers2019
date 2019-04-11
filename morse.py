@@ -45,7 +45,12 @@ y_coord = 10
 def draw_rect(screen, x, y, color):
     # Head
 
-    pygame.draw.rect(screen, color, [x%700, y, 5, 5], 0)
+    pygame.draw.rect(screen, color, [x, y, 1, 5], 0)
+
+    if x != 0:
+        x -= 1
+    pygame.draw.rect(screen, BLACK, [x, y+7, 5, 2], 0)
+    pygame.draw.rect(screen, GREEN, [x+1, y+7, 5, 2], 0)
 
 
 screen.fill(BLACK)
