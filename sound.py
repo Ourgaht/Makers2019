@@ -4,6 +4,7 @@ import time
 import pygame
 import os
 
+#test
 A=[0,1]
 B=[1,0,0,0]
 C=[1,0,1,0]
@@ -47,7 +48,7 @@ pygame.init()
 
 # start playing the background music
 pygame.mixer.music.load(os.path.join(os.getcwd(), 'sounds', 'ambiance_underwater.wav'))
-pygame.mixer.music.set_volume(0.6)
+pygame.mixer.music.set_volume(0.3)
 pygame.mixer.music.play(loops=-1)  # loop forever
 
 pygame.display.set_mode()
@@ -56,8 +57,8 @@ court = pygame.mixer.Sound("sounds/Court.wav")
 long = pygame.mixer.Sound("sounds/Long.wav")
 EE = pygame.mixer.Sound("sounds/EE.wav")
 
-pygame.mixer.Channel(0).set_volume(1.0)
-pygame.mixer.Channel(1).set_volume(1.0)
+pygame.mixer.Channel(0).set_volume(0.4)
+pygame.mixer.Channel(1).set_volume(0.7)
 pygame.mixer.Channel(0).set_endevent()
 pygame.mixer.Channel(1).set_endevent()
 
