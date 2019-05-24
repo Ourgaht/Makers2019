@@ -143,7 +143,7 @@ while not unlocked:
   # pygame.draw.rect(screen, GREEN, [0, 0, 50, 50], 0)
   draw_white_noise(screen)
   pygame.display.flip()
-  clock.tick(50)
+  clock.tick(100)
 
 # ------------- Phase normale ---------------------
 # --- GUI init ---
@@ -212,5 +212,5 @@ while not done:
   draw_radar_point(screen, radar_center, radar_radius*dist_ratio, angle, 1, GREEN)
 
   pygame.display.flip()
-  clock.tick(200)
+  clock.tick(2000)
 pygame.quit()
