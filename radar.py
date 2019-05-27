@@ -200,8 +200,8 @@ blcorner = (tlcorner[0], screen.get_height()-tlcorner[1])
 brcorner = (screen.get_width()-tlcorner[0], screen.get_height()-tlcorner[1])
 
 # Initialize radar GUI
-radar_radius = int(center[1]-50-tlcorner[1]/2)
-radar_center = [int(radar_radius+50+tlcorner[0]), int(center[1]+tlcorner[1]/2)]
+radar_radius = int(center[1]-80-tlcorner[1]/2)
+radar_center = [int(radar_radius+80+tlcorner[0]), int(center[1]+tlcorner[1]/2)]
 angle = 0
 # dist of the mooving object on the radar
 dist_ratio = 0.6
@@ -222,7 +222,9 @@ def draw_radar_point(screen, center, radius, angle, point_angle, color):
 x_speed = 0
 y_speed = 0
 color = GREEN
-morse_window = (center[0]+20, 10+tlcorner[1]+border_width)
+xborder_offset = 70
+yborder_offset = 100
+morse_window = (center[0]+xborder_offset, tlcorner[1]+border_width+yborder_offset, brcorner[0]-border_width-xborder_offset, brcorner[1]-border_width-yborder_offset)
 # Current position
 x_coord = morse_window[0]
 y_coord = morse_window[1]
@@ -275,7 +277,9 @@ pygame.draw.circle(screen, GREEN, trcorner, border_width, 2)
 pygame.draw.circle(screen, GREEN, blcorner, border_width, 2)
 pygame.draw.circle(screen, GREEN, brcorner, border_width, 2)
 
+
 done = False
+count = 0
 while not done:
   if GPIO_event == 1:
     GPIO_event = 0
@@ -305,34 +309,52 @@ while not done:
         
 
   # ------------- MORSE code ---------------
+  rect_offset = 10
+  pygame.draw.rect(screen, GREEN, [morse_window[0]-rect_offset, morse_window[1]-rect_offset, morse_window[2] - morse_window[0] + 2*rect_offset, morse_window[3] - morse_window[1] + 2*rect_offset], 2)
   # Move the object according to the speed vector.
   x_coord = x_coord + x_speed
   y_coord = y_coord + y_speed
-  if x_coord > screen.get_width()-(20+tlcorner[0]+border_width):
+  #if x_coord > screen.get_width()-(20+tlcorner[0]+border_width):
+  if x_coord > morse_window[2]:
     pygame.draw.rect(screen, BLACK, [x_coord-1, y_coord+7, 5, 2], 0) 
     y_coord += 20
-    if y_coord > screen.get_height()-(10+tlcorner[1]+border_width):
+    #if y_coord > screen.get_height()-(10+tlcorner[1]+border_width):
+    if y_coord > morse_window[3]:
       y_coord = morse_window[1]
-    pygame.draw.rect(screen, BLACK, [morse_window[0], y_coord, center[0]-(border_width+tlcorner[0]+20), 14], 0)
+    pygame.draw.rect(screen, BLACK, [morse_window[0], y_coord, morse_window[2] - morse_window[0], 14], 0)
     x_coord = morse_window[0]
   draw_cursor(screen, x_coord, y_coord, color)
 
   #----------------- RADAR -----------------
-  # Circles
   pygame.draw.circle(screen, BLACK, radar_center, radar_radius, 0)
-  pygame.draw.circle(screen, GREEN, radar_center, radar_radius, 2)
-  pygame.draw.circle(screen, GREEN, radar_center, int(radar_radius*0.7), 2)
-  pygame.draw.circle(screen, GREEN, radar_center, int(radar_radius*0.4), 2)
   # Sweep
   x = radar_center[0] + radar_radius * math.sin(angle)
   y = radar_center[1] + radar_radius * math.cos(angle)
   pygame.draw.line(screen, GREEN, radar_center, [x, y], 2)
+  shadow_angle = angle
+  amount = 100
+  for i in range(0,amount):
+    shadow_angle = shadow_angle - 0.0025
+    shadow_GREEN = (0, 255-i*(255/amount), 0)
+    xx = radar_center[0] + radar_radius * math.sin(shadow_angle)
+    yy = radar_center[1] + radar_radius * math.cos(shadow_angle)
+    pygame.draw.line(screen, shadow_GREEN, radar_center, [xx, yy], 2)
   angle = angle + .01
+
   # If we have done a full sweep, reset the angle to 0
   if angle > 2 * PI:
       angle = angle - 2 * PI
+  # Circles
+  pygame.draw.circle(screen, GREEN, radar_center, radar_radius, 2)
+  pygame.draw.circle(screen, GREEN, radar_center, int(radar_radius*0.7), 2)
+  pygame.draw.circle(screen, GREEN, radar_center, int(radar_radius*0.4), 2)
+  
   # Radar Points
-  dist_ratio = dist_ratio + 0.00001
+  count = count + 1
+  if count % 40 == 0:
+    dist_ratio = dist_ratio + 0.00001
+    if dist_ratio > 0.99:
+      dist_ratio = 0.99
   draw_radar_point(screen, radar_center, radar_radius*dist_ratio, angle, 1, GREEN)
   pygame.display.flip()
 
