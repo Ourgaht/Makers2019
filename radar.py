@@ -6,100 +6,40 @@ import pygame
 import math
 import random
 
+boot_time = -1000000000
+
 # ---------- Physical button on the rasp ----------
-import RPi.GPIO as GPIO # Import Raspberry Pi GPIO library
-state = 0
-GPIO_event = 0
-def button_callback(channel):
-    global GPIO_event
-    global state
-    if GPIO.input(10) == 0:
-      if state == 1:
-        print("Button was released!")
-        GPIO_event = 1
-      state = 0
-    else:
-      if state == 0:
-        print("Button was pushed!")
-        GPIO_event = 1  
-      state = 1
-GPIO.setwarnings(False) # Ignore warning for now
-GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
-GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # Set pin 10 to be an input pin and set initial value to be pulled low (off)
-GPIO.add_event_detect(10,GPIO.BOTH,callback=button_callback) # Setup event on pin 10 rising edge
+# import RPi.GPIO as GPIO # Import Raspberry Pi GPIO library
+# state = 0
+# GPIO_event = 0
+# def button_callback(channel):
+#     global GPIO_event
+#     global state
+#     global boot_time
+#     if boot_time < 0 :
+#        boot_time = time.time()
+#     if GPIO.input(10) == 0:
+#       if state == 1:
+#         print("Button was released!")
+#         GPIO_event = 1
+#       state = 0
+#     else:
+#       if state == 0:
+#         print("Button was pushed!")
+#         GPIO_event = 1  
+#       state = 1
+# GPIO.setwarnings(False) # Ignore warning for now
+# GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
+# GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # Set pin 10 to be an input pin and set initial value to be pulled low (off)
+# GPIO.add_event_detect(10,GPIO.BOTH,callback=button_callback) # Setup event on pin 10 rising edge
 
 # ---------- SOCKET connection with the central table ----------
-unlocked = False
-#import socket
-#HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-#PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
-#print("before socket")        
-#with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-#    s.bind((HOST, PORT))
-#    s.listen()
-#    conn, addr = s.accept()
-#    with conn:
-#        print('Connected by', addr)
-#        while True:
-#           data = conn.recv(1024)
-#            if not data:
-#                break
-#            conn.sendall('<3 from server')
-#print("after socket")
-
-
-
-
-
-# autre -------------------------------------
-#unlocked = False
-#import threading
-#import socketserver
- 
-#from datetime import datetime
- 
-## Python vient avec ses serveurs socket tout prêts.
-## Tout ce qu'il y a faire c'est créer une classe 
-## de handler, c'est à dire l'objet qui va s'occuper
-## des messages quand ils arrivent. On hérite du 
-## handler de la lib standard, et on redéfinit juste
-## handle() qui est la méthode qui va être appelée
-## à chaque message.
-#class RequestHandler(socketserver.BaseRequestHandler): 
-    #def handle(self):
-        #data = self.request.recv(1024)
-        #if data == "CMD_DEBLOCK" or data == "CMD_DEBLOCK\n":
-          #global unlocked
-          #unlocked = True
-        ## on récupère des requêtes, et on répond avec
-        ## exactement le même message + un timestamp
- 
-        #self.request.sendall(data)
-        
-## Pour le serveur, pas grand chose à faire à part le définir
-## Ici je fais un serveur threadé pour le Lulz car ça
-## ne sert pas à grand chose pour un client avec 3 messages
-## synchrones
-#class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    #pass
-  
-## on instancie notre server et on lui passe le gestionnaire de
-## requêtes
-#server = ThreadedTCPServer(('127.0.0.1', 65432), RequestHandler)
-#ip, port = server.server_address
-
-## on start le thread pour le serveur et on le daemonise
-#server_thread = threading.Thread(target=server.serve_forever)
-
-#server_thread.daemon = True
-#server_thread.start()
-
 import threading
-import time
 import socket
 
 HOST = '127.0.0.1'  # The server's hostname or IP address
 PORT = 65441        # The port used by the server
+unlocked = False
 time.sleep(2)
 
 def threaded_client():
@@ -117,11 +57,6 @@ def threaded_client():
       time.sleep(2)
 
 threading.Thread(target=threaded_client).start()
-
-
-
-
-
 
 # MORSE caracter
 A=[0,1]
@@ -164,6 +99,8 @@ pygame.mixer.music.load(os.path.join(os.getcwd(), 'sounds', 'whitenoise.wav'))
 pygame.mixer.music.set_volume(0.3)
 pygame.mixer.music.play(loops=-1)  # loop forever
 
+# the two next functions served to play any letter in the format [0,1,1,0] representing their morse code
+# In this project the code is always the same and was simply added over the background sound
 def playLetter(L):
   for i in L:
     if i == 0:
@@ -252,8 +189,11 @@ def draw_white_noise(screen):
       drawed = drawed+1
     
 
+boot_time = time.time()
 # ------------ Bugged mode ---------------------
 while not unlocked:
+  if(time.time()-boot_time < 0):
+    unlocked = True
   for event in pygame.event.get():
     if event.type == pygame.KEYDOWN:
       if event.key == pygame.K_s:
@@ -261,12 +201,36 @@ while not unlocked:
   # pygame.draw.rect(screen, GREEN, [0, 0, 50, 50], 0)
   draw_white_noise(screen)
   pygame.display.flip()
-  
+
+# ------------- Rebooting ------------------------
+# for i in range(0,5)
+#   screen.fill(BLACK)
+#   font = pygame.font.SysFont("freeserif", 30)
+#   text = font.render("Rebooting ...", True, GREEN)
+#   screen.blit(text, (20, 20))
+#   pygame.display.flip()
+#   time.sleep(2)
+#   text = font.render("Rebooting ....", True, GREEN)
+#   screen.blit(text, (20, 20))
+#   pygame.display.flip()
+#   time.sleep(2)
+#   text = font.render("Rebooting .....", True, GREEN)
+#   screen.blit(text, (20, 20))
+#   pygame.display.flip()
+#   time.sleep(2)
+#   text = font.render("Rebooting ......", True, GREEN)
+#   screen.blit(text, (20, 20))
+#   pygame.display.flip()
+#   time.sleep(2)
+#   text = font.render("Rebooting .......", True, GREEN)
+#   screen.blit(text, (20, 20))
+#   pygame.display.flip()
+#   time.sleep(2)
 
 # ------------- Regular mode ---------------------
 # start playing the background music
 pygame.mixer.music.load(os.path.join(os.getcwd(), 'sounds', 'ambiance_underwater+code.wav'))
-pygame.mixer.music.set_volume(0.3)
+pygame.mixer.music.set_volume(0.6)
 pygame.mixer.music.play(loops=-1)  # loop forever
 # --- GUI init ---
 screen.fill(BLACK)
@@ -279,33 +243,32 @@ pygame.draw.circle(screen, GREEN, brcorner, border_width, 2)
 
 
 done = False
+last_morse = 100000000000
+jump = 0
 count = 0
 while not done:
-  if GPIO_event == 1:
-    GPIO_event = 0
-    if state == 1:
-      x_speed = 1
-      color = GREEN
-    else:
-      color = BLACK      
+  # if GPIO_event == 1:
+  #   GPIO_event = 0
+  #   if state == 1:
+  #     x_speed = 1
+  #     color = GREEN
+  #   else:
+  #     color = BLACK   
   for event in pygame.event.get():
     if event.type == pygame.KEYDOWN:
       if event.key == pygame.K_ESCAPE:
         done = True
       if event.key == pygame.K_a:
-        ee = 0
-        playLetter(A)
-      if event.key == pygame.K_b:
-        ee = 0
-        playLetter(B)
-      if event.key == pygame.K_e:
-        ee = ee + 1
-        if ee == 2:
-          ee = 0
-          playEE()
-# ------------- MORSE event --------------        
-    #elif event.type == pygame.KEYUP:
-      
+          last_morse = time.time()
+          jump = 0
+          x_speed = 1
+          color = GREEN    
+    elif event.type == pygame.KEYUP:
+      if event.key == pygame.K_a:
+          x_speed = 0
+          color = BLACK
+          pygame.draw.rect(screen, BLACK, [x_coord, y_coord+7, 5, 2], 0)
+          x_coord = x_coord + 10
         
 
   # ------------- MORSE code ---------------
@@ -314,11 +277,15 @@ while not done:
   # Move the object according to the speed vector.
   x_coord = x_coord + x_speed
   y_coord = y_coord + y_speed
-  #if x_coord > screen.get_width()-(20+tlcorner[0]+border_width):
-  if x_coord > morse_window[2]:
-    pygame.draw.rect(screen, BLACK, [x_coord-1, y_coord+7, 5, 2], 0) 
+  print(time.time()-last_morse)
+  if time.time()-last_morse > 3.5 and jump != 2:
+    jump = jump + 1
+    last_morse = time.time()
+    pygame.draw.rect(screen, BLACK, [x_coord-1, y_coord+7, 6, 2], 0) 
     y_coord += 20
-    #if y_coord > screen.get_height()-(10+tlcorner[1]+border_width):
+  if x_coord > morse_window[2]:
+    pygame.draw.rect(screen, BLACK, [x_coord-1, y_coord+7, 6, 2], 0) 
+    y_coord += 20
     if y_coord > morse_window[3]:
       y_coord = morse_window[1]
     pygame.draw.rect(screen, BLACK, [morse_window[0], y_coord, morse_window[2] - morse_window[0], 14], 0)
@@ -358,5 +325,5 @@ while not done:
   draw_radar_point(screen, radar_center, radar_radius*dist_ratio, angle, 1, GREEN)
   pygame.display.flip()
 
-GPIO.cleanup() # Clean up
+# GPIO.cleanup() # Clean up
 pygame.quit()
